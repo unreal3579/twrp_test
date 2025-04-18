@@ -173,6 +173,7 @@ jobs:
       run: |
         source build/envsetup.sh
         export ALLOW_MISSING_DEPENDENCIES=true
+        find ./ -name "*ap{1,2,3}a*"
         lunch ${{ github.event.inputs.MAKEFILE_NAME }}-ap3a-eng && make clean && make ${{ github.event.inputs.BUILD_TARGET }}image -j$(nproc --all)
       working-directory: ${{ steps.pwd.outputs.workspace-folder }}
 
