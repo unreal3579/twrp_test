@@ -54,11 +54,11 @@ on:
       APPLYPATCH:
         description: 'Apply diff.patch (true or false)'
         required: true
-        default: 'yes'
+        default: 'true'
         type: choice
         options:
-        - yes
-        - no
+        - true
+        - false
       
 jobs:
   build:
