@@ -13,7 +13,7 @@ on:
       MANIFEST_BRANCH:
         description: 'MANIFEST_BRANCH'
         required: true
-        default: 'twrp-12.1'
+        default: 'twrp-14'
         type: choice
         options:
         - 'twrp-12.1'
@@ -21,17 +21,17 @@ on:
       DEVICE_TREE_URL:
         description: 'DEVICE_TREE_URL'
         required: true
-        default: 'https://github.com/unreal3579/device_xiaomi_ziyi_twrp'
+        default: 'https://github.com/unreal3579/twrp_test'
         type: choice
         options:
-        - 'https://github.com/unreal3579/device_xiaomi_ziyi_twrp'
+        - 'https://github.com/unreal3579/twrp_test'
       DEVICE_TREE_BRANCH:
         description: 'DEVICE_TREE_BRANCH'
         required: true
-        default: 'twrp-12.1'
+        default: 'main'
         type: choice
         options:
-        - 'twrp-12.1'
+        - 'main'
       DEVICE_PATH:
         description: 'DEVICE_PATH'
         required: true
@@ -173,7 +173,7 @@ jobs:
       run: |
         source build/envsetup.sh
         export ALLOW_MISSING_DEPENDENCIES=true
-        lunch ${{ github.event.inputs.MAKEFILE_NAME }}-eng && make clean && make ${{ github.event.inputs.BUILD_TARGET }}image -j$(nproc --all)
+        lunch twrp ${{ github.event.inputs.DEVICE_NAME }}-eng && make clean && make ${{ github.event.inputs.BUILD_TARGET }}image -j$(nproc --all)
       working-directory: ${{ steps.pwd.outputs.workspace-folder }}
 
     - name: Upload to Release
