@@ -1,4 +1,4 @@
-# Copyright (c) 2017-2023, The Linux Foundation. All rights reserved.
+# Copyright (c) 2017-2018,2020 The Linux Foundation. All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions are met:
@@ -24,54 +24,17 @@
 # OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 # ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-service vibratorfeature /vendor/bin/hw/vendor.xiaomi.hardware.vibratorfeature.service
-    user root
-    group root input
-    onrestart restart vibratorfeature
-    seclabel u:r:recovery:s0
-
 on early-init
-    write /sys/fs/selinux/enforce 0
-
-on early-fs
-    write /proc/sys/walt/sched_lib_name "recovery,magiskboot,Updater,updater,update_engine_sideload"
-    write /proc/sys/walt/sched_lib_mask_force 255
-
-on fs
-    wait /dev/block/platform/soc/${ro.boot.bootdevice}
-    symlink /dev/block/platform/soc/${ro.boot.bootdevice} /dev/block/bootdevice
-    write /proc/sys/kernel/firmware_config/force_sysfs_fallback 1
-    chmod 0660 /dev/qseecom
-    chown system drmrpc /dev/qseecom
-    chmod 0664 /dev/ion
-    chown system system /dev/ion
-    install_keyring
+    insmod /vendor/lib/modules/q6_pdr_dlkm.ko
+    insmod /vendor/lib/modules/q6_notifier_dlkm.ko
+    insmod /vendor/lib/modules/snd_event_dlkm.ko
+    insmod /vendor/lib/modules/gpr_dlkm.ko
+    insmod /vendor/lib/modules/spf_core_dlkm.ko
+    insmod /vendor/lib/modules/adsp_loader_dlkm.ko
 
 on init
-    mkdir /mnt/vendor/persist
-    chmod 0777 /mnt/vendor/persist
-    chown root:root /mnt/vendor/persist
-    mount /dev/block/by-name/persist /mnt/vendor/persist
-    export LD_LIBRARY_PATH /vendor/lib64:/vendor/lib64/hw
-    start boot-hal-1-2
-    write /sys/class/backlight/panel0-backlight/brightness 204
+    write /sys/class/backlight/panel0-backlight/brightness 200
     setprop sys.usb.configfs 1
-    start vibratorfeature		
-
-on boot
-    setprop sys.usb.config adb
-
-on property:twrp.modules.loaded=true
-    # Mount firmware
-    mkdir /firmware
-    mount vfat /dev/block/bootdevice/by-name/modem${ro.boot.slot_suffix} /firmware ro
-    # Load ADSP firmware for PMIC
-    wait /sys/kernel/boot_adsp/boot
-    write /sys/kernel/boot_adsp/boot 1
-    wait /sys/class/power_supply/battery
-    start health-hal-2-1
-    start vibratorfeature-hal-service
-    umount /firmware
 
 on property:ro.boot.usbcontroller=*
     setprop sys.usb.controller ${ro.boot.usbcontroller}
@@ -80,3 +43,15 @@ on property:ro.boot.usbcontroller=*
     wait /sys/class/udc/${ro.boot.usbcontroller} 0
     write /sys/bus/platform/devices/${ro.boot.usb.dwc3_msm:-a600000.ssusb}/mode peripheral
     wait /sys/class/udc/${ro.boot.usbcontroller} 1
+
+on fs
+    wait /dev/block/platform/soc/${ro.boot.bootdevice}
+    symlink /dev/block/platform/soc/${ro.boot.bootdevice} /dev/block/bootdevice
+    write /proc/sys/kernel/firmware_config/force_sysfs_fallback 1
+    mkdir /vendor/firmware_mnt
+    mkdir /vendor/firmware
+    mount_all /vendor/etc/charger_fstab.qti --early
+    mount none /vendor/firmware_mnt/image /vendor/firmware bind rec
+    wait /sys/kernel/boot_adsp/boot
+    write /sys/kernel/boot_adsp/boot 1
+    wait /sys/class/power_supply/battery
